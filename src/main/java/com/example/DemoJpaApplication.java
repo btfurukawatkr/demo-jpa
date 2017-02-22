@@ -1,5 +1,7 @@
 package com.example;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
 import javax.transaction.Transactional;
 
 import org.slf4j.Logger;
@@ -28,10 +30,13 @@ public class DemoJpaApplication {
 
         private final ParentRepository parentRepository;
         private final ChildRepository childRepository;
+        private final EntityManagerFactory entityManagerFactory;
 
-        public DemoRestController(ParentRepository parentRepository, ChildRepository childRepository) {
+        public DemoRestController(ParentRepository parentRepository, ChildRepository childRepository,
+                EntityManagerFactory entityManagerFactory) {
             this.parentRepository = parentRepository;
             this.childRepository = childRepository;
+            this.entityManagerFactory = entityManagerFactory;
         }
 
         @GetMapping("/deleteAll")
@@ -104,6 +109,37 @@ public class DemoJpaApplication {
             LOGGER.info("Parent:" + String.valueOf(pCnt));
             LOGGER.info("Child:" + String.valueOf(cCnt));
             return pCnt;
+        }
+
+        @GetMapping("/demo2")
+        public void demo2() {
+            // persist parent entity in a transaction
+
+            EntityManager em = entityManagerFactory.createEntityManager();
+            em.getTransaction().begin();
+
+            Parent parent = new Parent();
+            em.persist(parent);
+            int id = parent.getId();
+
+            em.getTransaction().commit();
+            em.close();
+
+            // relate and persist child entity in a new transaction
+            em = entityManagerFactory.createEntityManager();
+            em.getTransaction().begin();
+            
+            parent = em.find(Parent.class, id);
+            // parent.getChildren().size();
+            Child child = new Child();
+            child.setParent(parent);
+            parent.getChildren().add(child);
+            em.persist(child);
+
+            System.out.println(parent.getChildren());
+
+            em.getTransaction().commit();
+            em.close();
         }
     }
 }
