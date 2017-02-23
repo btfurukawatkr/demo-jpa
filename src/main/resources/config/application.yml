@@ -1,4 +1,18 @@
 spring:
+  profiles:
+    active: mysql
+
+---
+spring:
+  profiles: mysql
+  datasource:
+    url: jdbc:mysql://localhost/hoge
+    username: hoge
+    password: hoge
+    driverClassName: com.mysql.jdbc.Driver
+---
+spring:
+  profiles: postgresql
   datasource:
     url: jdbc:postgresql://localhost/postgres
     username: postgres
